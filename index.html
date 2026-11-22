@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#101827">
+  <title>PHONE HUNTER</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root{--bg:#0b1220;--panel:#131f31;--panel2:#1b2a40;--line:#293b55;--text:#f3f7ff;--muted:#91a3bd;--blue:#64a8ff;--green:#39d6a0;--gold:#ffc96b}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(ellipse at 50% -15%,#1d3c61 0,transparent 48%),var(--bg);color:var(--text);font:15px system-ui,-apple-system,Segoe UI,sans-serif}
+    .wrap{max-width:560px;margin:auto;padding:18px 16px 36px}.top{display:flex;justify-content:space-between;align-items:center;margin:4px 0 18px}
+    .brand{font-weight:900;letter-spacing:1.6px;font-size:18px}.online{font-size:11px;color:var(--green);border:1px solid #286b5b;padding:5px 9px;border-radius:20px}
+    .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}.stat,.panel{background:linear-gradient(145deg,var(--panel),#101a29);border:1px solid var(--line);border-radius:17px}
+    .stat{padding:11px 9px;text-align:center}.stat b{display:block;font-size:18px}.stat span{color:var(--muted);font-size:11px}
+    .hero{padding:20px 16px;text-align:center;position:relative;overflow:hidden}.eyebrow{color:var(--muted);font-size:11px;letter-spacing:1.4px;text-transform:uppercase}
+    .phone-icon{font-size:35px;margin:10px 0}.number{font-size:clamp(23px,6vw,32px);font-weight:850;letter-spacing:1px;word-break:break-word;margin:7px 0 5px}
+    .country{color:#c4d4e9;font-size:13px}.rarity{display:inline-block;margin:12px 0 4px;padding:5px 10px;border-radius:20px;background:#26344a;color:var(--gold);font-size:11px;font-weight:700}
+    .note{font-size:11px;color:var(--muted);line-height:1.45;margin:10px auto 0;max-width:390px}
+    button,select{font:inherit}button{border:0;cursor:pointer;color:white;font-weight:750;border-radius:13px;padding:13px 15px;background:linear-gradient(100deg,#287be2,#4b9dff);width:100%;margin-top:12px}
+    button:disabled{opacity:.45;cursor:not-allowed}.secondary{background:var(--panel2);border:1px solid var(--line);color:#dce9fa}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:16px 0 12px}.tab{background:transparent;border:1px solid var(--line);color:var(--muted);padding:10px 5px;font-size:12px}.tab.active{background:#1b3553;color:white;border-color:#3979bd}
+    .section{padding:15px;margin-top:10px}.section h3{font-size:15px;margin:0 0 12px}.selectrow{display:flex;gap:8px;align-items:center}
+    select{min-width:0;flex:1;background:#0d1828;color:white;border:1px solid var(--line);border-radius:11px;padding:11px}
+    .item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #26364b}.item:last-child{border:0}
+    .item strong{font-size:13px}.item small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.tag{font-size:10px;color:var(--gold);white-space:nowrap}
+    .empty{color:var(--muted);font-size:13px;text-align:center;padding:20px 5px}.hidden{display:none!important}
+    .progress{height:7px;background:#26364b;border-radius:8px;overflow:hidden;margin:8px 0}.progress i{display:block;height:100%;background:linear-gradient(90deg,#3b8df0,#43d6a5);width:0}
+    .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#e8f2ff;color:#102033;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:.2s;pointer-events:none;max-width:90%;text-align:center}.toast.show{opacity:1}
+    footer{text-align:center;color:#6f829c;font-size:10px;margin-top:20px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><div class="brand">📱 PHONE HUNTER</div><div class="online">● GAME ONLINE</div></header>
+  <div class="stats">
+    <div class="stat"><b id="coins">100</b><span>🪙 Монеты</span></div>
+    <div class="stat"><b id="level">1</b><span>⭐ Уровень</span></div>
+    <div class="stat"><b id="total">0</b><span>📦 В коллекции</span></div>
+  </div>
+
+  <section class="panel hero">
+    <div class="eyebrow">Твой следующий номер</div>
+    <div class="phone-icon">🌐</div>
+    <div class="number" id="number">+1 (202) 555-0148</div>
+    <div class="country" id="country">🇺🇸 США</div>
+    <div class="rarity" id="rarity">ОБЫЧНЫЙ</div>
+    <div class="actions">
+      <button class="secondary" id="copyBtn">Копировать</button>
+      <button id="saveBtn">＋ В коллекцию</button>
+    </div>
+    <button id="generateBtn">🎲 Сгенерировать · 5 🪙</button>
+    <p class="note">Это вымышленные игровые комбинации для коллекционирования. Они не являются выданными телефонными номерами и не предназначены для звонков или SMS.</p>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="collection">Коллекция</button>
+    <button class="tab" data-tab="profile">Профиль</button>
+    <button class="tab" data-tab="rating">Рейтинг</button>
+  </nav>
+
+  <section class="panel section" id="generatorSettings">
+    <h3>🌍 Страна генерации</h3>
+    <div class="selectrow"><select id="countrySelect" aria-label="Выбрать страну"></select></div>
+  </section>
+
+  <section class="panel section" id="collectionPanel">
+    <h3>📦 Моя коллекция</h3>
+    <div id="collectionList" class="empty">Пока пусто. Сгенерируй первый номер!</div>
+  </section>
+  <section class="panel section hidden" id="profilePanel">
+    <h3>👤 Профиль игрока</h3>
+    <div class="item"><div><strong id="playerName">Охотник</strong><small>Игрок PHONE HUNTER</small></div><span class="tag">НОВИЧОК</span></div>
+    <div class="item"><div><strong>Опыт</strong><small id="xpText">0 / 100 XP до следующего уровня</small></div></div>
+    <div class="progress"><i id="xpBar"></i></div>
+    <h3 style="margin-top:17px">🏆 Достижения</h3>
+    <div id="achievements"></div>
+    <button class="secondary" id="dailyBtn">🎁 Забрать ежедневный бонус · +20 🪙</button>
+  </section>
+  <section class="panel section hidden" id="ratingPanel">
+    <h3>🏅 Таблица рекордов</h3>
+    <div class="item"><div><strong>1. NumberKing</strong><small>Коллекция: 128</small></div><span class="tag">ТОП</span></div>
+    <div class="item"><div><strong>2. PixelHunter</strong><small>Коллекция: 96</small></div><span class="tag">ТОП</span></div>
+    <div class="item"><div><strong>3. You</strong><small id="yourScore">Коллекция: 0</small></div><span class="tag">ТЫ</span></div>
+    <p class="note">Демо-рейтинг. Для общей таблицы игроков понадобится подключить сервер и базу данных.</p>
+  </section>
+  <footer>PHONE HUNTER · Игровой прототип · Данные хранятся на этом устройстве</footer>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(() => {
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#0b1220'); tg.setBackgroundColor('#0b1220'); } catch(e) {} }
+  const countries = [
+    ['🇺🇸','США','1'],['🇨🇦','Канада','1'],['🇬🇧','Великобритания','44'],['🇩🇪','Германия','49'],
+    ['🇫🇷','Франция','33'],['🇮🇹','Италия','39'],['🇪🇸','Испания','34'],['🇳🇱','Нидерланды','31'],
+    ['🇧🇪','Бельгия','32'],['🇨🇭','Швейцария','41'],['🇦🇹','Австрия','43'],['🇸🇪','Швеция','46'],
+    ['🇳🇴','Норвегия','47'],['🇩🇰','Дания','45'],['🇫🇮','Финляндия','358'],['🇵🇱','Польша','48'],
+    ['🇨🇿','Чехия','420'],['🇬🇷','Греция','30'],['🇵🇹','Португалия','351'],['🇹🇷','Турция','90'],
+    ['🇺🇦','Украина','380'],['🇷🇺','Россия','7'],['🇯🇵','Япония','81'],['🇰🇷','Южная Корея','82'],
+    ['🇨🇳','Китай','86'],['🇮🇳','Индия','91'],['🇦🇺','Австралия','61'],['🇳🇿','Новая Зеландия','64'],
+    ['🇧🇷','Бразилия','55'],['🇲🇽','Мексика','52'],['🇦🇷','Аргентина','54'],['🇿🇦','ЮАР','27'],
+    ['🇦🇪','ОАЭ','971'],['🇸🇬','Сингапур','65'],['🇮🇱','Израиль','972'],['🇹🇭','Таиланд','66']
+  ];
+  const $ = id => document.getElementById(id);
+  const defaults = {coins:100,xp:0,collection:[],lastBonus:'',current:null};
+  let state;
+  try { state = {...defaults,...JSON.parse(localStorage.getItem('phoneHunterSave')||'{}')}; } catch(e) { state={...defaults}; }
+  let current = state.current || makeNumber(0);
+  const save = () => { state.current=current; localStorage.setItem('phoneHunterSave',JSON.stringify(state)); render(); };
+  const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+  function makeNumber(index) {
+    const c = countries[index] || countries[0];
+    const digits = Array.from({length:8},()=>Math.floor(Math.random()*10)).join('');
+    const repeated = /(.)\1{3,}/.test(digits);
+    const palindrome = digits === digits.split('').reverse().join('');
+    const lucky = digits.includes('777') || digits.includes('888');
+    const rare = palindrome || lucky;
+    return {id:Date.now()+Math.random(),flag:c[0],name:c[1],code:c[2],digits,display:`+${c[2]} ${digits.slice(0,4)} ${digits.slice(4)}`,rarity:palindrome?'ЛЕГЕНДАРНЫЙ':lucky?'ЭПИЧЕСКИЙ':repeated?'РЕДКИЙ':'ОБЫЧНЫЙ',points:palindrome?50:lucky?25:repeated?12:5};
+  }
+  function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1800);}
+  function render(){
+    $('coins').textContent=state.coins;$('level').textContent=1+Math.floor(state.xp/100);
+    $('total').textContent=state.collection.length;$('number').textContent=current.display;
+    $('country').textContent=current.flag+' '+current.name;$('rarity').textContent=current.rarity;
+    $('saveBtn').disabled=state.collection.some(x=>x.digits===current.digits&&x.code===current.code);
+    $('generateBtn').disabled=state.coins<5;
+    $('collectionList').className=state.collection.length?'':'empty';
+    $('collectionList').innerHTML=state.collection.length?state.collection.slice().reverse().map(x=>`<div class="item"><div><strong>${x.flag} ${x.display}</strong><small>${x.name}</small></div><span class="tag">${x.rarity}</span></div>`).join(''):'Пока пусто. Сгенерируй первый номер!';
+    const xp=state.xp%100;$('xpText').textContent=`${xp} / 100 XP до следующего уровня`;$('xpBar').style.width=xp+'%';
+    $('yourScore').textContent='Коллекция: '+state.collection.length;
+    const achievements=[['Первый улов',state.collection.length>=1],['Коллекционер',state.collection.length>=10],['Охотник за редкостями',state.collection.some(x=>x.rarity!=='ОБЫЧНЫЙ')],['Легенда',state.collection.some(x=>x.rarity==='ЛЕГЕНДАРНЫЙ')]];
+    $('achievements').innerHTML=achievements.map(a=>`<div class="item"><strong>${a[1]?'✅':'🔒'} ${a[0]}</strong><span class="tag">${a[1]?'ОТКРЫТО':'ЗАКРЫТО'}</span></div>`).join('');
+    $('dailyBtn').disabled=state.lastBonus===new Date().toDateString();
+  }
+  const select=$('countrySelect');
+  countries.forEach((c,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${c[0]} ${c[1]} (+${c[2]})`;select.appendChild(o);});
+  select.value='0';
+  $('generateBtn').addEventListener('click',()=>{if(state.coins<5)return;state.coins-=5;current=makeNumber(Number(select.value));save();toast('Новая комбинация готова!');});
+  $('saveBtn').addEventListener('click',()=>{if(state.collection.some(x=>x.digits===current.digits&&x.code===current.code))return toast('Уже в коллекции');state.collection.push(current);state.xp+=current.points;save();toast('Добавлено в коллекцию! +'+current.points+' XP');});
+  $('copyBtn').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(current.display);toast('Скопировано');}catch(e){toast('Не удалось скопировать');}});
+  $('dailyBtn').addEventListener('click',()=>{if(state.lastBonus===new Date().toDateString())return;state.coins+=20;state.lastBonus=new Date().toDateString();save();toast('Бонус получен: +20 монет!');});
+  document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===btn));
+    ['collection','profile','rating'].forEach(name=>$(name+'Panel').classList.toggle('hidden',name!==btn.dataset.tab));
+    $('generatorSettings').classList.toggle('hidden',btn.dataset.tab!=='collection');
+  }));
+  if(tg?.initDataUnsafe?.user?.first_name)$('playerName').textContent=tg.initDataUnsafe.user.first_name;
+  render();
+})();
+</script>
+</body>
+</html>
